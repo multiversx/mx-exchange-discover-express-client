@@ -1,5 +1,8 @@
 import express, { json } from 'express';
 import { getCompletionPayload, serializeAndSign, signPayload } from './helpers.js';
+import { config } from "dotenv";
+
+config();
 
 const PORT = 3000;
 const PREFIX = 'xexchange-growth';
@@ -55,47 +58,42 @@ const getTaskCompletionForWeek = async (address, week) => {
   }
 };
 
-(async () => {
-  const { config } = await import('dotenv');
-  config();
+const app = express();
 
-  const app = express();
+app.use(json());
 
-  app.use(json());
-
-  // /tasks-cost endpoint: GET request with "week" query parameter
-  app.get(`/${PREFIX}/tasks-cost`, async (req, res) => {
-      const week = parseInt(req.query.week);
-      const response = await getCostForWeek(week);
-
-      const signedResponse = await serializeAndSign(response);
-      res.json(signedResponse);
-  });
-
-  // /task endpoint: GET request with "address" and "week" query parameters
-  app.get(`/${PREFIX}/task`, async (req, res) => {
-    const address = req.query.address;
+// /tasks-cost endpoint: GET request with "week" query parameter
+app.get(`/${PREFIX}/tasks-cost`, async (req, res) => {
     const week = parseInt(req.query.week);
-    const response = await getUserTaskForWeek(address, week);
+    const response = await getCostForWeek(week);
 
     const signedResponse = await serializeAndSign(response);
     res.json(signedResponse);
-  });
+});
 
-  // /task-completion endpoint: GET request with "address" and "week" query parameters
-  app.get(`/${PREFIX}/task-completion`, async (req, res) => {
-    const address = req.query.address;
-    const week = parseInt(req.query.week);
-    const response = await getTaskCompletionForWeek(address, week);
+// /task endpoint: GET request with "address" and "week" query parameters
+app.get(`/${PREFIX}/task`, async (req, res) => {
+  const address = req.query.address;
+  const week = parseInt(req.query.week);
+  const response = await getUserTaskForWeek(address, week);
 
-    const signedResponse = await serializeAndSign(response)
-    res.json(signedResponse);
-  });
+  const signedResponse = await serializeAndSign(response);
+  res.json(signedResponse);
+});
 
-  // Start the server
-  app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-  });
-})();
+// /task-completion endpoint: GET request with "address" and "week" query parameters
+app.get(`/${PREFIX}/task-completion`, async (req, res) => {
+  const address = req.query.address;
+  const week = parseInt(req.query.week);
+  const response = await getTaskCompletionForWeek(address, week);
+
+  const signedResponse = await serializeAndSign(response)
+  res.json(signedResponse);
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 
