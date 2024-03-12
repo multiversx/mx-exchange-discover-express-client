@@ -3,7 +3,6 @@ import { getCompletionPayload, serializeAndSign, signPayload } from './helpers.j
 
 const PORT = 3000;
 const PREFIX = 'xexchange-growth';
-const PROJECT_ID = 1;
 
 const getCostForWeek = async (week) => {
   // Here you can add any logic you want based on the week parameter
@@ -45,7 +44,7 @@ const getTaskCompletionForWeek = async (address, week) => {
   const isCompleted = true;
   const completionNote = '<TASK_IDENTIFIER>'
 
-  const completion = getCompletionPayload(PROJECT_ID, address, week, isCompleted, completionNote);
+  const completion = getCompletionPayload(address, week, isCompleted, completionNote);
   const signature = await signPayload(completion, 'hex');
   return {
     completion: completion,

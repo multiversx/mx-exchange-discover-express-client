@@ -5,7 +5,9 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-app": "npm run create-env-file && npm start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create-env-file": "test -f ./.env || cp .env.example ./.env"
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,6 @@ import { UserSigner } from '@multiversx/sdk-wallet';
 import { Address } from '@multiversx/sdk-core';
 import { readFileSync } from 'fs';
 
-const WALLET_PATH = './signer_wallet.json';
 const COMPLETTION_PREFIX = 'xExchangeGrowthV1TaskCompleted';
 
 export const serializeAndSign = async (responseObj) => {
@@ -28,7 +27,7 @@ export const signPayload = async (payload, encoding = 'utf8') => {
     return '';
   }
   
-  const fileContent = readFileSync(WALLET_PATH, { encoding: 'utf8' });
+  const fileContent = readFileSync(process.env.WALLET_PATH, { encoding: 'utf8' });
   const walletObject = JSON.parse(fileContent);
   const userSigner = UserSigner.fromWallet(walletObject, process.env.WALLET_PASSWORD);
   const message = Buffer.from(payload, encoding)
@@ -37,13 +36,14 @@ export const signPayload = async (payload, encoding = 'utf8') => {
   return signature.toString('hex');
 }
 
-export const getCompletionPayload = (projectId, address, week, isCompleted, note = '') => {
+export const getCompletionPayload = (address, week, isCompleted, note = '') => {
   if (!isCompleted) {
     return ''
   }
 
   const prefixBuffer = Buffer.from(stringToHex(COMPLETTION_PREFIX), 'hex');
 
+  const projectId = parseInt(process.env.PROJECT_ID);
   const projectBuffer = Buffer.alloc(4, undefined, 'hex');
   projectBuffer.writeUInt32BE(projectId, 0);
 
