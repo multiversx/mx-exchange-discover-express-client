@@ -1,5 +1,9 @@
+# Env
+.env
+
 # Dependency directories
 node_modules/
 
-# Wallers
+# Wallets
 *.pem
+*_wallet.json
