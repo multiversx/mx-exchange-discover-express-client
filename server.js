@@ -1,38 +1,102 @@
 import express, { json } from 'express';
-import { getCostForWeek, getTaskCompletionForWeek, getUserTaskForWeek } from './generateResponses.js';
-// import { getCostForWeek, getUserTaskForWeek, getTaskCompletionForWeek } from 'discover';
+import { getCompletionPayload, serializeAndSign, signPayload } from './helpers.js';
 
-const app = express();
 const PORT = 3000;
 const PREFIX = 'xexchange-growth';
+const PROJECT_ID = 1;
 
-app.use(json());
+const getCostForWeek = async (week) => {
+  // Here you can add any logic you want based on the week parameter
+  // Cost information can be stored in a static file or pulled from the database
 
-// Endpoint 1: GET request with "week" query parameter
-app.get(`/${PREFIX}/tasks-cost`, async (req, res) => {
-    const week = req.query.week;
-    const response = await getCostForWeek(week)
+  const money = 2;
+  const time = 5; 
 
-    res.json(response);
-});
+  return {
+    money: money,
+    time: time,
+    isFinal: true,
+    week: week,
+    version: 2,
+  }
+};
 
-// Endpoint 2: GET request with "address" and "week" query parameters
-app.get(`/${PREFIX}/task`, async (req, res) => {
-  const { address, week } = req.query; 
-  const response = await getUserTaskForWeek(address, week)
+const getUserTaskForWeek = async (address, week) => {
+  // Here you can add any logic you want based on the address and week parameters
+  // User tasks can be stored in a static file or pulled from the database
+  
+  const url = 'https://test.com'
+  const description = 'Task description goes here'
+  
+  return {
+    url: url,
+    description: description,
+    address: address,
+    isFinal: true,
+    week: week,
+    version: 2,
+  }
+};
 
-  res.json(response);
-});
+const getTaskCompletionForWeek = async (address, week) => {
+  // Here you can add any logic you want based on the address and week parameters
+  // Determine whether the user has completed the task or not
 
-// Endpoint 3: GET request with "address" and "week" query parameters
-app.get(`/${PREFIX}/task-completion`, async (req, res) => {
-  const { address, week } = req.query; 
-  const response = await getTaskCompletionForWeek(address, week);
+  const isCompleted = true;
+  const completionNote = '<TASK_IDENTIFIER>'
 
-  res.json(response);
-});
+  const completion = getCompletionPayload(PROJECT_ID, address, week, isCompleted, completionNote);
+  const signature = await signPayload(completion, 'hex');
+  return {
+    completion: completion,
+    address: address,
+    completionSignature: signature,
+    version: 2,
+    week: week,
+  }
+};
 
-// Start the server
-app.listen(PORT, () => {
+(async () => {
+  const { config } = await import('dotenv');
+  config();
+
+  const app = express();
+
+  app.use(json());
+
+  // /tasks-cost endpoint: GET request with "week" query parameter
+  app.get(`/${PREFIX}/tasks-cost`, async (req, res) => {
+      const week = parseInt(req.query.week);
+      const response = await getCostForWeek(week);
+
+      const signedResponse = await serializeAndSign(response);
+      res.json(signedResponse);
+  });
+
+  // /task endpoint: GET request with "address" and "week" query parameters
+  app.get(`/${PREFIX}/task`, async (req, res) => {
+    const address = req.query.address;
+    const week = parseInt(req.query.week);
+    const response = await getUserTaskForWeek(address, week);
+
+    const signedResponse = await serializeAndSign(response);
+    res.json(signedResponse);
+  });
+
+  // /task-completion endpoint: GET request with "address" and "week" query parameters
+  app.get(`/${PREFIX}/task-completion`, async (req, res) => {
+    const address = req.query.address;
+    const week = parseInt(req.query.week);
+    const response = await getTaskCompletionForWeek(address, week);
+
+    const signedResponse = await serializeAndSign(response)
+    res.json(signedResponse);
+  });
+
+  // Start the server
+  app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-});
+  });
+})();
+
+
