@@ -43,6 +43,9 @@ export const getCompletionPayload = (address, week, isCompleted, note = '') => {
 
   const prefixBuffer = Buffer.from(stringToHex(COMPLETTION_PREFIX), 'hex');
 
+  const prefixBufferLength = Buffer.alloc(4, undefined, 'hex');
+  prefixBufferLength.writeUInt32BE(prefixBuffer.length, 0);
+
   const projectId = parseInt(process.env.PROJECT_ID);
   const projectBuffer = Buffer.alloc(4, undefined, 'hex');
   projectBuffer.writeUInt32BE(projectId, 0);
@@ -54,7 +57,12 @@ export const getCompletionPayload = (address, week, isCompleted, note = '') => {
 
   const noteBuffer = Buffer.from(stringToHex(note), 'hex');
 
-  const message = Buffer.concat([prefixBuffer, projectBuffer, weekBuffer, addressBuffer, noteBuffer]);
+  const noteBufferLength = Buffer.alloc(4, undefined, 'hex');
+  noteBufferLength.writeUInt32BE(noteBuffer.length, 0);
+
+  const message = Buffer.concat([
+    prefixBufferLength, prefixBuffer, projectBuffer, weekBuffer, addressBuffer, noteBufferLength, noteBuffer
+  ]);
 
   return message.toString('hex');
 }
